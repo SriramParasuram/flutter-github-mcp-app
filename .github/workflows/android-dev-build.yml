@@ -1,0 +1,53 @@
+name: Android Dev Build
+
+on:
+  # Manual trigger
+  workflow_dispatch:
+
+  # Auto trigger on push to main (optional - comment out if you don't want this)
+  push:
+    branches: [ main ]
+    paths:
+      - 'lib/**'
+      - 'android/**'
+      - 'pubspec.yaml'
+
+jobs:
+  build:
+    name: Build Android Dev APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: ☕ Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: 🐦 Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.35.2'  # Use your Flutter version
+          channel: 'stable'
+
+      - name: 📦 Get dependencies
+        run: flutter pub get
+
+      - name: 🔨 Build Dev APK
+        run: flutter build apk --release --flavor dev --target lib/main_dev.dart
+
+      - name: 📤 Upload APK as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dev-apk-${{ github.run_number }}
+          path: build/app/outputs/flutter-apk/app-dev-release.apk
+          retention-days: 30
+
+      - name: ✅ Build Complete!
+        run: |
+          echo "🎉 Dev APK built successfully!"
+          echo "📱 Download from the Actions tab > Artifacts section"
+          echo "🔗 Direct link: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
