@@ -1,10 +1,24 @@
-name: Android Dev Build
+name: Android Build (All Flavors)
 
 on:
-  # Manual trigger
   workflow_dispatch:
+    inputs:
+      flavor:
+        description: 'Build flavor'
+        required: true
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
+        default: 'dev'
 
-  # Auto trigger on push to main (optional - comment out if you don't want this)
+      platform:
+        description: 'Platform (android, ios, both)'
+        required: false
+        type: string
+        default: 'android'
+
   push:
     branches: [ main ]
     paths:
@@ -14,7 +28,7 @@ on:
 
 jobs:
   build:
-    name: Build Android Dev APK
+    name: Build Android ${{ github.event.inputs.flavor || 'dev' }} APK
     runs-on: ubuntu-latest
 
     steps:
@@ -30,24 +44,26 @@ jobs:
       - name: 🐦 Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.35.2'  # Use your Flutter version
+          flutter-version: '3.24.0'
           channel: 'stable'
 
       - name: 📦 Get dependencies
         run: flutter pub get
 
-      - name: 🔨 Build Dev APK
-        run: flutter build apk --release --flavor dev --target lib/main_dev.dart
+      - name: 🔨 Build ${{ github.event.inputs.flavor || 'dev' }} APK
+        run: |
+          FLAVOR="${{ github.event.inputs.flavor || 'dev' }}"
+          echo "Building flavor: $FLAVOR"
+          flutter build apk --release --flavor $FLAVOR --target lib/main_$FLAVOR.dart
 
       - name: 📤 Upload APK as Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: dev-apk-${{ github.run_number }}
-          path: build/app/outputs/flutter-apk/app-dev-release.apk
+          name: ${{ github.event.inputs.flavor || 'dev' }}-apk-${{ github.run_number }}
+          path: build/app/outputs/flutter-apk/app-${{ github.event.inputs.flavor || 'dev' }}-release.apk
           retention-days: 30
 
       - name: ✅ Build Complete!
         run: |
-          echo "🎉 Dev APK built successfully!"
-          echo "📱 Download from the Actions tab > Artifacts section"
-          echo "🔗 Direct link: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          echo "🎉 ${{ github.event.inputs.flavor || 'dev' }} APK built successfully!"
+          echo "📱 Download from: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
