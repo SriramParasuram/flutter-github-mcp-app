@@ -65,4 +65,5 @@ jobs:
       - name: ✅ Build Complete!
         run: |
           echo "🎉 ${{ github.event.inputs.flavor || 'dev' }} APK built successfully!"
-          echo "📱 Download from: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          echo "📱 Download from: [https://github.com/$](https://github.com/$){{ github.repository }}/actions/runs/${{ github.run_id }}"
+
